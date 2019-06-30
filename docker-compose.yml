@@ -1,10 +1,12 @@
-version: '3'
+version: '3.7'
 services:
   grafana:
     image: "grafana/grafana"
+    configs:
+      - source:  grafana-config
+        target: /usr/share/grafana/conf/grafana.ini
     volumes:
-      - "${GRAFANA_CONFIG}:/usr/share/grafana/conf/defaults.ini"
-      - "${GRAFANA_DASHBOARD_DIR}:/var/lib/grafana/dashboards"
+      - "./dashboards:/var/lib/grafana/dashboards"
     ports:
       - "3000:3000"
     healthcheck:
@@ -13,17 +15,21 @@ services:
       retries: 30
   prometheus:
     image: "prom/prometheus"
-    volumes:
-      - "${PROMETHEUS_CONFIG}:/etc/prometheus/prometheus.yml"
-      - "./config/prometheus.rules:/etc/prometheus/prometheus.rules.yml"
+    configs:
+            - source:  prometheus-config
+              target: /etc/prometheus/prometheus.yml
+            - source:  prometheus.rules-config
+              target: /etc/prometheus/prometheus.rules.yml
     ports:
       - "9090:9090"
   project-dev-kpis:
     image: "soundcloud/project-dev-kpis"
     env_file:
-      - "${PDK_ENV}"
+      - "./config/production.env"
+    configs:
+            - source:  projects-config
+              target: /projects.json
     volumes:
-      - "${PDK_PROJECTS_CONFIG}:/projects.json"
       - "/tmp:/tmp"
     ports:
       - "8080:8080"
